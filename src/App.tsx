@@ -6,6 +6,7 @@ import { fluentNew } from "./colors/fluentNew";
 import Color from "colorjs.io";
 
 type OrderKeyType = {
+  name: string;
   light: string;
   dark: string;
   hc: string;
@@ -58,7 +59,7 @@ const calculateColorDifferences = (keyLight: Color, keyDark: Color, light: strin
 };
 
 const AppInner = () => {
-  const { light, setLight, dark, setDark, hc, setHc, orderKey, setOrderKey } = useSettingContext();
+  const { light, setLight, dark, setDark, hc, setHc, orderKey } = useSettingContext();
 
   const fluentNewSorted = useMemo(() => {
     if (!orderKey) return fluentNew;
@@ -71,7 +72,6 @@ const AppInner = () => {
       }))
       .sort((a, b) => a.difference - b.difference)
       .map((x) => x.color);
-    console.log(colorsWithDiffs);
     return Object.fromEntries(colorsWithDiffs);
   }, [fluentNew, orderKey]);
 
@@ -88,7 +88,6 @@ const AppInner = () => {
           <label>
             <input type="checkbox" checked={hc} onChange={() => setHc((v: boolean) => !v)} /> hc
           </label>
-          <button onClick={() => setOrderKey(null)}>Reset</button>
         </div>
 
         <h1 className="app__old-header">Old Fluent</h1>
@@ -96,13 +95,13 @@ const AppInner = () => {
 
         {orderKey ? (
           <>
-            <ColorList colors={{ "Wybrany kolor:": orderKey }} invertedRow={false} />
-            <ColorList colors={fluentNewSorted} invertedRow={true} />
+            <ColorList colors={{ x: orderKey }} resettable />
+            <ColorList colors={fluentNewSorted} isRightSide />
           </>
         ) : (
           <>
-            <ColorList colors={fluentOld} invertedRow={false} />
-            <ColorList colors={fluentNew} invertedRow={true} />
+            <ColorList colors={fluentOld} />
+            <ColorList colors={fluentNew} isRightSide />
           </>
         )}
       </div>

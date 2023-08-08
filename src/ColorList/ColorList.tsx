@@ -8,7 +8,8 @@ type RowProps = {
   light: string;
   hc: string;
   dark: string;
-  invertedRow: boolean;
+  isRightSide: boolean;
+  resettable: boolean;
 };
 
 type ColorProps = {
@@ -22,7 +23,7 @@ const Color = ({ name, color }: ColorProps) => (
   </div>
 );
 
-const Headers = ({ invertedRow = false }: { invertedRow: boolean }) => {
+const Headers = ({ isRightSide = false }: { isRightSide: boolean }) => {
   const { light: dlight, dark: ddark, hc: dhc } = useSettingContext();
 
   const x = [
@@ -45,36 +46,51 @@ const Headers = ({ invertedRow = false }: { invertedRow: boolean }) => {
       </div>
     ),
   ];
-  return invertedRow ? x.reverse() : x;
+  return isRightSide ? x.reverse() : x;
 };
 
-const Row = ({ name, light, hc, dark, invertedRow = false }: RowProps) => {
+const Row = ({ name, light, hc, dark, isRightSide = false, resettable }: RowProps) => {
   const { light: dlight, dark: ddark, hc: dhc, setOrderKey } = useSettingContext();
 
-  const setOrder = () => setOrderKey({ light, hc, dark });
+  const setOrder = () => setOrderKey(resettable ? null : { name, light, hc, dark });
+  const buttonLabel = resettable ? "x" : "•";
 
   const x = [
     <div key="name" className="color-row color-row__name color-area--name" title={name}>
-      <button onClick={setOrder}>•</button> {name}
+      <button className="color-row-button" onClick={setOrder}>
+        {buttonLabel}
+      </button>{" "}
+      {name}
     </div>,
     dlight && <Color key="light" name="light" color={light} />,
     ddark && <Color key="dark" name="dark" color={dark} />,
     dhc && <Color key="hc" name="hc" color={hc} />,
   ];
-  return invertedRow ? x.reverse() : x;
+  return isRightSide ? x.reverse() : x;
 };
 
-export const ColorList = ({ colors, invertedRow = false }: { colors: Colors; invertedRow: boolean }) => {
-  const rows = Object.entries(colors).map(([name, colors]) => <Row key={name} {...{ name, ...colors, invertedRow }} />);
+export const ColorList = ({
+  colors,
+  isRightSide = false,
+  resettable = false,
+}: {
+  colors: Colors;
+  isRightSide?: boolean;
+  resettable?: boolean;
+}) => {
+  const rows = Object.entries(colors).map(([name, colors]) => (
+    <Row key={name} {...{ name, ...colors, isRightSide, resettable }} />
+  ));
 
   const { light, dark, hc } = useSettingContext();
   const columnCount = useMemo<number>(() => 1 + +light + +dark + +hc, [light, dark, hc]);
 
-  const styles = { "--columns": columnCount } as React.CSSProperties;
-
   return (
-    <div className={`color-list ${invertedRow ? "" : "color-list--old-fluent"}`} style={styles}>
-      <Headers {...{ invertedRow }} />
+    <div
+      className={`color-list ${isRightSide ? "color-list--right" : "color-list--left"}`}
+      style={{ "--columns": columnCount } as React.CSSProperties}
+    >
+      <Headers {...{ isRightSide }} />
       {rows}
     </div>
   );

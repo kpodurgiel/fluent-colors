@@ -1,9 +1,14 @@
 .color-list {
   display: grid;
   grid-template-columns: repeat(var(--columns), auto);
+  grid-template-rows: min-content;
   justify-self: start;
-  &--old-fluent {
+  &--left {
     justify-self: end;
+  }
+
+  &--right .color-row-button {
+    display: none;
   }
 }
 
@@ -16,6 +21,7 @@
 .color-row {
   padding: 2px 5px;
 }
+
 .color-row {
   overflow: hidden;
   white-space: nowrap;
@@ -29,7 +35,7 @@
     width: 80px;
     font-size: 0.7em;
     font-weight: bold;
-    font-family: "Roboto Mono";
+    font-family: "Roboto Mono", monospace;
     text-shadow: 1px 1px 0px #fff, -1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff;
   }
 }
