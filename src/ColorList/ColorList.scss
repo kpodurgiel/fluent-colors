@@ -1,0 +1,35 @@
+.color-list {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), auto);
+  justify-self: start;
+  &--old-fluent {
+    justify-self: end;
+  }
+}
+
+.color-header {
+  font-weight: bold;
+  font-size: 1.4em;
+}
+
+.color-header,
+.color-row {
+  padding: 2px 5px;
+}
+.color-row {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  &__name {
+    font-weight: bold;
+  }
+
+  &__color {
+    width: 80px;
+    font-size: 0.7em;
+    font-weight: bold;
+    font-family: "Roboto Mono";
+    text-shadow: 1px 1px 0px #fff, -1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff;
+  }
+}
