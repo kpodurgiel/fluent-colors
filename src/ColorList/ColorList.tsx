@@ -52,7 +52,14 @@ const Headers = ({ isRightSide = false }: { isRightSide: boolean }) => {
 const Row = ({ name, light, hc, dark, isRightSide = false, resettable }: RowProps) => {
   const { light: dlight, dark: ddark, hc: dhc, setOrderKey } = useSettingContext();
 
-  const setOrder = () => setOrderKey(resettable ? null : { name, light, hc, dark });
+  const setOrder = () => {
+    if (resettable) {
+      setOrderKey(null);
+    } else {
+      setOrderKey({ name, light, hc, dark })
+      document.body.scrollIntoView({ behavior: "smooth", inline: "start", block: "start" });
+    }
+  };
   const buttonLabel = resettable ? "x" : "•";
 
   const x = [
