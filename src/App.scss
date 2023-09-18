@@ -24,31 +24,44 @@
     grid-column: span 2;
     justify-self: center;
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
     gap: 10px;
+    min-width: 300px;
 
-    &__search {
-      flex-basis: 100%;
+    fieldset {
+      border: 1px solid currentColor;
+      border-radius: 5px;
+      width: 100%;
+      margin: 0;
+
+      legend {
+        padding: 5px 10px;
+      }
+    }
+
+    &__checkboxes {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      gap: 15px;
+    }
+
+    & &__search {
+      display: flex;
       align-items: center;
+      flex-direction: column;
       gap: 5px;
 
       input {
-        border: 1px solid currentColor;
-        border-radius: 5px;
-        padding: 5px;
+        border: none;
+        outline: none;
+        width: 100%;
       }
 
-      &--error input {
-        outline: 2px solid red;
-      }
-
-      div {
-        color: red;
+      &--error {
+        border-color: red;
+        legend {
+          color: red;
+        }
       }
     }
   }

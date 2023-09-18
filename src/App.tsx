@@ -20,6 +20,12 @@ interface SettingsContextType {
   setDark: (x: React.SetStateAction<boolean>) => void;
   hc: boolean;
   setHc: (x: React.SetStateAction<boolean>) => void;
+  calcLight: boolean;
+  setCalcLight: (x: React.SetStateAction<boolean>) => void;
+  calcDark: boolean;
+  setCalcDark: (x: React.SetStateAction<boolean>) => void;
+  calcHC: boolean;
+  setCalcHC: (x: React.SetStateAction<boolean>) => void;
   orderKey: OrderKeyType;
   setOrderKey: (x: React.SetStateAction<OrderKeyType>) => void;
 }
@@ -30,6 +36,9 @@ const SettingsContextProvider = ({ children }: { children: ReactNode | ReactNode
   const [light, setLight] = useState<boolean>(true);
   const [dark, setDark] = useState<boolean>(true);
   const [hc, setHc] = useState<boolean>(true);
+  const [calcLight, setCalcLight] = useState<boolean>(true);
+  const [calcDark, setCalcDark] = useState<boolean>(true);
+  const [calcHC, setCalcHC] = useState<boolean>(false);
   const [orderKey, setOrderKey] = useState<OrderKeyType>(null);
 
   return (
@@ -41,6 +50,12 @@ const SettingsContextProvider = ({ children }: { children: ReactNode | ReactNode
         setDark,
         hc,
         setHc,
+        calcLight,
+        setCalcLight,
+        calcDark,
+        setCalcDark,
+        calcHC,
+        setCalcHC,
         orderKey,
         setOrderKey,
       }}
@@ -55,12 +70,22 @@ export const useSettingContext = () => {
   return ctx as SettingsContextType;
 };
 
-const calculateColorDifferences = (keyLight: Color, keyDark: Color, light: string, dark: string) => {
-  return (keyLight.deltaE2000(new Color(light)) + keyDark.deltaE2000(new Color(dark))) / 2;
-};
-
 const AppSettings = () => {
-  const { light, setLight, dark, setDark, hc, setHc, setOrderKey } = useSettingContext();
+  const {
+    light,
+    setLight,
+    dark,
+    setDark,
+    hc,
+    setHc,
+    calcLight,
+    setCalcLight,
+    calcDark,
+    setCalcDark,
+    calcHC,
+    setCalcHC,
+    setOrderKey,
+  } = useSettingContext();
   const [isInvalidInput, setIsInvalidInput] = useState<boolean>(false);
 
   const handleInput = useDebouncedCallback((e) => {
@@ -76,7 +101,7 @@ const AppSettings = () => {
       if (value) {
         setIsInvalidInput(true);
       }
-     }
+    }
     if (value && color) {
       setIsInvalidInput(false);
       setOrderKey({
@@ -86,43 +111,68 @@ const AppSettings = () => {
         hc: value,
       });
     }
-  }, 500);
+  }, 400);
 
   return (
-  <div className="app__settings">
-    <label>
-      <input type="checkbox" checked={light} onChange={() => setLight((v: boolean) => !v)} /> light
-    </label>
-    <label>
-      <input type="checkbox" checked={dark} onChange={() => setDark((v: boolean) => !v)} /> dark
-    </label>
-    <label>
-      <input type="checkbox" checked={hc} onChange={() => setHc((v: boolean) => !v)} /> hc
-    </label>
-    <div className={`app__settings__search ${isInvalidInput ? "app__settings__search--error" : ""}`}>
-      <input type="text" placeholder="Type in a color..." onChange={handleInput} onFocus={handleInput} />
-      <div>{isInvalidInput ? "Cannot parse this as color" : "\u00a0"}</div>
+    <div className="app__settings">
+      <fieldset className="app__settings__checkboxes">
+        <legend>Visibility</legend>
+        <label>
+          <input type="checkbox" checked={light} onChange={() => setLight((v: boolean) => !v)} /> Light
+        </label>
+        <label>
+          <input type="checkbox" checked={dark} onChange={() => setDark((v: boolean) => !v)} /> Dark
+        </label>
+        <label>
+          <input type="checkbox" checked={hc} onChange={() => setHc((v: boolean) => !v)} /> HC
+        </label>
+      </fieldset>
+      <fieldset className="app__settings__checkboxes">
+        <legend>Calc using</legend>
+        <label>
+          <input type="checkbox" checked={calcLight} onChange={() => setCalcLight((v: boolean) => !v)} /> Light
+        </label>
+        <label>
+          <input type="checkbox" checked={calcDark} onChange={() => setCalcDark((v: boolean) => !v)} /> Dark
+        </label>
+        <label>
+          <input type="checkbox" checked={calcHC} onChange={() => setCalcHC((v: boolean) => !v)} /> HC
+        </label>
+      </fieldset>
+      <fieldset className={`app__settings__search ${isInvalidInput ? "app__settings__search--error" : ""}`}>
+        <legend>{isInvalidInput ? "Cannot parse this as color" : "Match against a color"}</legend>
+        <input type="text" placeholder="Type in a color..." onChange={handleInput} onFocus={handleInput} />
+      </fieldset>
     </div>
-  </div>
   );
-}
+};
 
 const AppInner = () => {
-  const { orderKey } = useSettingContext();
+  const { calcLight, calcDark, calcHC, orderKey } = useSettingContext();
 
   const fluentNewSorted = useMemo(() => {
     if (!orderKey) return fluentNew;
+
     const keyLight = new Color(orderKey.light);
     const keyDark = new Color(orderKey.dark);
+    const keyHC = new Color(orderKey.hc);
+
     const colorsWithDiffs = Object.entries(fluentNew)
-      .map((color) => ({
-        color,
-        difference: calculateColorDifferences(keyLight, keyDark, color[1].light, color[1].dark),
-      }))
+      .map((color) => {
+        const listOfPairs = [];
+        if (calcLight) listOfPairs.push([keyLight, new Color(color[1].light)]);
+        if (calcDark) listOfPairs.push([keyDark, new Color(color[1].dark)]);
+        if (calcHC) listOfPairs.push([keyHC, new Color(color[1].hc)]);
+
+        return {
+          color,
+          difference: calculateColorDifferences(listOfPairs),
+        };
+      })
       .sort((a, b) => a.difference - b.difference)
       .map((x) => x.color);
     return Object.fromEntries(colorsWithDiffs);
-  }, [fluentNew, orderKey]);
+  }, [fluentNew, orderKey, calcLight, calcDark, calcHC]);
 
   return (
     <div className="app">
@@ -146,6 +196,10 @@ const AppInner = () => {
       </div>
     </div>
   );
+};
+
+const calculateColorDifferences = (listOfPairs: Color[][]) => {
+  return listOfPairs.map(([a, b]) => a.deltaE2000(b)).reduce((a, b) => a + b, 0) / listOfPairs.length;
 };
 
 export default function App() {
