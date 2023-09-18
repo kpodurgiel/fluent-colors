@@ -26,6 +26,30 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    &__search {
+      flex-basis: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+
+      input {
+        border: 1px solid currentColor;
+        border-radius: 5px;
+        padding: 5px;
+      }
+
+      &--error input {
+        outline: 2px solid red;
+      }
+
+      div {
+        color: red;
+      }
+    }
   }
 }

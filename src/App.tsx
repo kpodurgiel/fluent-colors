@@ -4,6 +4,7 @@ import { ColorList } from "./ColorList";
 import { fluentOld } from "./colors/fluentOld";
 import { fluentNew } from "./colors/fluentNew";
 import Color from "colorjs.io";
+import { useDebouncedCallback } from "use-debounce";
 
 type OrderKeyType = {
   name: string;
@@ -58,8 +59,56 @@ const calculateColorDifferences = (keyLight: Color, keyDark: Color, light: strin
   return (keyLight.deltaE2000(new Color(light)) + keyDark.deltaE2000(new Color(dark))) / 2;
 };
 
+const AppSettings = () => {
+  const { light, setLight, dark, setDark, hc, setHc, setOrderKey } = useSettingContext();
+  const [isInvalidInput, setIsInvalidInput] = useState<boolean>(false);
+
+  const handleInput = useDebouncedCallback((e) => {
+    const value = e.target?.value;
+    if (!value) {
+      setOrderKey(null);
+      setIsInvalidInput(false);
+    }
+    let color;
+    try {
+      color = new Color(value);
+    } catch {
+      if (value) {
+        setIsInvalidInput(true);
+      }
+     }
+    if (value && color) {
+      setIsInvalidInput(false);
+      setOrderKey({
+        name: "Searched value",
+        light: value,
+        dark: value,
+        hc: value,
+      });
+    }
+  }, 500);
+
+  return (
+  <div className="app__settings">
+    <label>
+      <input type="checkbox" checked={light} onChange={() => setLight((v: boolean) => !v)} /> light
+    </label>
+    <label>
+      <input type="checkbox" checked={dark} onChange={() => setDark((v: boolean) => !v)} /> dark
+    </label>
+    <label>
+      <input type="checkbox" checked={hc} onChange={() => setHc((v: boolean) => !v)} /> hc
+    </label>
+    <div className={`app__settings__search ${isInvalidInput ? "app__settings__search--error" : ""}`}>
+      <input type="text" placeholder="Type in a color..." onChange={handleInput} onFocus={handleInput} />
+      <div>{isInvalidInput ? "Cannot parse this as color" : "\u00a0"}</div>
+    </div>
+  </div>
+  );
+}
+
 const AppInner = () => {
-  const { light, setLight, dark, setDark, hc, setHc, orderKey } = useSettingContext();
+  const { orderKey } = useSettingContext();
 
   const fluentNewSorted = useMemo(() => {
     if (!orderKey) return fluentNew;
@@ -78,17 +127,7 @@ const AppInner = () => {
   return (
     <div className="app">
       <div className={`app__columns ${orderKey ? "app__columns--stretch" : ""}`}>
-        <div className="app__settings">
-          <label>
-            <input type="checkbox" checked={light} onChange={() => setLight((v: boolean) => !v)} /> light
-          </label>
-          <label>
-            <input type="checkbox" checked={dark} onChange={() => setDark((v: boolean) => !v)} /> dark
-          </label>
-          <label>
-            <input type="checkbox" checked={hc} onChange={() => setHc((v: boolean) => !v)} /> hc
-          </label>
-        </div>
+        <AppSettings />
 
         <h1 className="app__old-header">Old Fluent</h1>
         <h1 className="app__new-header">New Fluent</h1>
